@@ -1,0 +1,10 @@
+fastapi==0.138.1
+uvicorn==0.49.0
+pydantic==2.13.4
+python-multipart==0.0.32
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.12.1+cpu
+numpy==2.5.0
+nltk==3.9.4
+regex==2026.5.9
+pandas==3.0.3
