@@ -1,6 +1,6 @@
 # Spam Ham Classifier
 
-A minimal yet effective SMS spam classifier built from scratch using PyTorch's LSTM. Unlike typical approaches that rely on pre-trained embeddings (Word2Vec, GloVe, etc.) or traditional ML models (Naive Bayes, SVM), this project trains its own word embeddings and uses a sequential model that actually understands the context and flow of a message.
+A spam classifier built from scratch using PyTorch, focused on using **simple and easy-to-understand approaches** to solve three real problems — capturing semantic meaning in text, handling variable-length sequences efficiently, and dealing with class imbalance. Instead of relying on black-box pre-trained models like Gensim's Word2Vec or traditional ML models that ignore word order entirely, everything here is built from the ground up so you can see exactly what's happening and why.
 
 **Live Demo**: [spam-ham-frontend.streamlit.app](https://spam-ham-frontend.streamlit.app/)
 
@@ -21,9 +21,15 @@ docker pull prabhsimrat/spam-ham:latest
 
 Most spam classifiers you'll find online use **Bag of Words** or **TF-IDF** + a traditional ML model like Naive Bayes or Logistic Regression. These approaches treat text as a flat collection of words — they don't care about the order. So "Free call now" and "Now call free" look the same to them.
 
-This project uses an **LSTM (Long Short-Term Memory)** network, which processes words **sequentially**. It reads the message word by word, maintains a memory of what it has seen so far, and uses that context to make a decision. This means patterns like "click here to win" or "call now to claim" are captured as sequences, not just isolated keywords.
+This project takes a different route with three key ideas:
 
-On top of that, instead of using pre-trained embeddings from something like Gensim's Word2Vec, this project **trains its own embeddings** using `nn.Embedding`. The embeddings are learned specifically for the spam/ham classification task, so they capture exactly the kind of word relationships that matter here.
+**1. Capturing semantic meaning with LSTM** — Instead of treating words as isolated features, an LSTM reads the message word by word, maintains a memory of what it has seen so far, and uses that context to make a decision. Patterns like "click here to win" or "call now to claim" are captured as sequences, not just scattered keywords. This is something Bag of Words or TF-IDF simply cannot do.
+
+**2. Training our own embeddings instead of using pre-trained ones** — Pre-trained models like Gensim's Word2Vec are powerful, but they're also black boxes trained on massive general-purpose corpora. You don't really know what relationships they've learned. Here, embeddings are created from scratch using `nn.Embedding` and trained specifically on this dataset for this task. Every word vector is learned in the context of spam vs ham classification — nothing more, nothing less. You can see exactly what's being learned.
+
+**3. Handling class imbalance with intuitive weight assignment** — With ~87% ham and ~13% spam, the model would naturally lean towards predicting ham. The fix is a simple formula: `total / (2 * class_count)`. This gives spam a weight of ~3.73 and ham ~0.58, meaning every spam misclassification costs the model ~6.5x more. No complex oversampling or synthetic data generation — just a straightforward penalty that works.
+
+On top of these, the custom **collate function** dynamically pads sequences to the max length within each batch rather than using a fixed global max. A batch of short messages gets padded to 12 tokens, not 189. Simple idea, less wasted computation.
 
 ---
 
@@ -269,6 +275,20 @@ Spam-Ham-Predictor/
 └── notebooks/
     └── Untitled.ipynb      # Training notebook
 ```
+
+---
+
+## Limitations
+
+This model works well for the dataset it was trained on, but there are clear limitations to be aware of:
+
+- **Small training data** — The model was trained on just ~4,500 messages. That's enough to learn common spam patterns, but not enough to generalise to every possible variation of spam out there.
+
+- **LSTMs are data hungry** — LSTMs learn sequential patterns, and they need a lot of data to learn them well. With a small dataset, the model has limited exposure to diverse sentence structures and phrasing styles.
+
+- **Real-world text is more complex** — Real messages can have sarcasm, slang, code-switching between languages, URLs, emojis, and context that spans multiple messages. A simple single-layer LSTM trained on 5,572 SMS messages is not going to handle all of that. For production-grade spam filtering, you'd need a much larger dataset and likely a more powerful architecture (transformers, for example).
+
+The goal here was never to build the best spam filter — it was to demonstrate these core NLP and deep learning concepts using simple, understandable approaches.
 
 ---
 
